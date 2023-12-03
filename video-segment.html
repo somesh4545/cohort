@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video-js.min.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.3.min.js"
+      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.11.7/video.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-eme@3.8.0/dist/videojs-contrib-eme.js"></script>
+
+    <title>Test VideJS DRM</title>
+
+    <style>
+      .vjs-marker {
+        position: absolute;
+        background: red;
+        width: 5px;
+        height: 110%;
+        top: -5%;
+        z-index: 30;
+        margin-left: -3px;
+      }
+
+      .vjs-marker:hover span {
+        opacity: 1;
+      }
+
+      .vjs-marker span {
+        position: absolute;
+        bottom: 15px;
+        opacity: 0;
+        margin-left: -20px;
+        z-index: 90;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 8px;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="margin: 50px auto">
+      <video id="my-video" class="video-js"></video>
+    </div>
+
+    <script>
+      var player = videojs(
+        "my-video",
+        {
+          controls: true,
+          fluid: true,
+          html5: {
+            vhs: {
+              overrideNative: true,
+            },
+          },
+        },
+        function () {
+          var player = this;
+          player.eme();
+          player.src({
+            src: "https://cdn.bitmovin.com/content/assets/art-of-motion_drm/mpds/11331.mpd",
+            type: "application/dash+xml",
+            keySystems: {
+              "com.widevine.alpha":
+                "https://cwip-shaka-proxy.appspot.com/no_auth",
+            },
+          });
+
+          player.ready(function () {
+            player.tech(true).on("keystatuschange", function (event) {
+              console.log("event: ", event);
+            });
+          });
+          var chapters = [
+            { time: 50, label: "First Chapter" },
+            { time: 150, label: "Second Chapter" },
+            { time: 200, label: "Third Chapter" },
+          ];
+
+          player.on("loadedmetadata", function () {
+            var total = player.duration();
+            var p = jQuery(player.controlBar.progressControl.children_[0].el_);
+
+            for (var i = 0; i < chapters.length; i++) {
+              var left = (chapters[i].time / total) * 100 + "%";
+
+              var time = chapters[i].time;
+
+              var el = jQuery(
+                '<div class="vjs-marker" style="left:' +
+                  left +
+                  '" data-time="' +
+                  time +
+                  '"><span>' +
+                  chapters[i].label +
+                  "</span></div>"
+              );
+              el.click(function () {
+                player.currentTime($(this).data("time"));
+              });
+
+              p.append(el);
+            }
+          });
+        }
+      );
+    </script>
+  </body>
+</html>
