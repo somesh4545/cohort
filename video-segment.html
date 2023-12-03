@@ -22,9 +22,10 @@
     <title>Test VideJS DRM</title>
 
     <style>
+      /* styling for the marker */
       .vjs-marker {
         position: absolute;
-        background: red;
+        background: black;
         width: 5px;
         height: 110%;
         top: -5%;
@@ -33,6 +34,7 @@
       }
 
       .vjs-marker:hover span {
+        font-size: 18px;
         opacity: 1;
       }
 
@@ -45,6 +47,7 @@
         background: rgba(0, 0, 0, 0.8);
         padding: 8px;
         font-size: 10px;
+        border-radius: 10px;
       }
     </style>
   </head>
@@ -82,6 +85,8 @@
               console.log("event: ", event);
             });
           });
+
+          // chapters i.e segments
           var chapters = [
             { time: 50, label: "First Chapter" },
             { time: 150, label: "Second Chapter" },
@@ -90,13 +95,15 @@
 
           player.on("loadedmetadata", function () {
             var total = player.duration();
+
+            // accessing the progress control to add the chapter marker
             var p = jQuery(player.controlBar.progressControl.children_[0].el_);
 
             for (var i = 0; i < chapters.length; i++) {
               var left = (chapters[i].time / total) * 100 + "%";
 
               var time = chapters[i].time;
-
+              // to add segments
               var el = jQuery(
                 '<div class="vjs-marker" style="left:' +
                   left +
@@ -106,6 +113,7 @@
                   chapters[i].label +
                   "</span></div>"
               );
+              // adding the onclick function
               el.click(function () {
                 player.currentTime($(this).data("time"));
               });
